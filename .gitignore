@@ -1,0 +1,27 @@
+# Python / Arquivos virtuais e cache
+**/__pycache__/
+*.py[cod]
+*$py.class
+**/.venv/
+**/venv/
+**/ENV/
+**/env/
+
+# Node / React Native
+**/node_modules/
+**/.expo/
+**/.expo-shared/
+**/dist/
+**/build/
+
+# C++ / ESP32 / Arduino / PlatformIO
+**/.pio/
+**/.vscode/
+**/.idea/
+**/build/
+
+# Arquivos de Sistema e IDEs
+.DS_Store
+Thumbs.db
+*.log
+.env

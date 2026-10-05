@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ParkSync - Cadastro Rápido (Banca)</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; }
+        .container { max-width: 600px; margin: 0 auto; background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        h2 { text-align: center; color: #333; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px; }
+        .form-group input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+        .camera-container { text-align: center; margin-bottom: 20px; }
+        video { width: 100%; max-width: 400px; border-radius: 10px; border: 2px solid #007bff; display: none; margin: 0 auto; }
+        button { width: 100%; padding: 12px; border: none; border-radius: 5px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; color: white; }
+        .btn-cam { background-color: #17a2b8; }
+        .btn-cam:hover { background-color: #138496; }
+        .btn-submit { background-color: #28a745; display: none; }
+        .btn-submit:hover { background-color: #218838; }
+        #status { text-align: center; margin-top: 15px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>ParkSync - Cadastro de Morador</h2>
+
+    <div class="form-group"><label>Nome Completo:</label><input type="text" id="nome" required></div>
+    <div class="form-group"><label>E-mail:</label><input type="email" id="email" required></div>
+    <div style="display: flex; gap: 10px;">
+        <div class="form-group" style="flex: 1;"><label>Apartamento:</label><input type="text" id="apartamento" required></div>
+        <div class="form-group" style="flex: 1;"><label>Bloco:</label><input type="text" id="bloco" required></div>
+    </div>
+    <hr>
+    <h2>ParkSync - Veículo vinculado</h2>
+    <div class="form-group"><label>Placa do Veículo (Ex: ABC1D23):</label><input type="text" id="placa" required></div>
+    <div class="form-group"><label>Marca (Ex: Ford):</label><input type="text" id="marca"></div>
+    <div class="form-group"><label>Modelo (Ex: Mustang Mach):</label><input type="text" id="modelo"></div>
+    <div class="form-group"><label>Cor (Ex: Branco):</label><input type="text" id="cor"></div>
+
+    <div class="camera-container">
+        <video id="videoElement" autoplay playsinline></video>
+        <canvas id="canvasElement" style="display: none;"></canvas>
+        <button type="button" class="btn-cam" id="btnIniciarCam" onclick="iniciarCamera()">📸 Ligar Câmera</button>
+        <button type="button" class="btn-cam" id="btnCapturar" style="display: none; background-color: #ffc107; color: black;" onclick="capturarFoto()">📷 Capturar Rosto</button>
+    </div>
+
+    <button type="button" class="btn-submit" id="btnSalvar" onclick="enviarCadastro()">✅ Salvar e Validar Face</button>
+    <div id="status"></div>
+</div>
+
+<script>
+    let stream = null;
+
+    async function iniciarCamera() {
+        const video = document.getElementById('videoElement');
+        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
+        video.srcObject = stream;
+        video.style.display = 'block';
+        document.getElementById('btnCapturar').style.display = 'block';
+        document.getElementById('btnIniciarCam').style.display = 'none';
+    }
+
+    function capturarFoto() {
+        const video = document.getElementById('videoElement');
+        const canvas = document.getElementById('canvasElement');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        canvas.getContext('2d').drawImage(video, 0, 0);
+        document.getElementById('btnSalvar').style.display = 'block';
+        alert("Foto capturada! Preencha os dados acima e salve.");
+    }
+
+    async function enviarCadastro() {
+        const btn = document.getElementById('btnSalvar');
+        btn.disabled = true;
+        btn.innerText = "Salvando...";
+
+        const payload = {
+            nome: document.getElementById('nome').value,
+            email: document.getElementById('email').value,
+            apartamento: document.getElementById('apartamento').value,
+            bloco: document.getElementById('bloco').value,
+            senha: "senha_padrao_123", 
+            placa: document.getElementById('placa').value,
+            marca: document.getElementById('marca').value,
+            modelo: document.getElementById('modelo').value,
+            cor: document.getElementById('cor').value,
+            foto_base64: document.getElementById('canvasElement').toDataURL('image/jpeg')
+        };
+
+        try {
+            const res = await fetch('http://localhost:8000/api/morador/cadastro', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            
+            if(res.ok) {
+                document.getElementById('status').innerHTML = `<span style="color: green;">${data.status}! Morador registrado (ID: ${data.id})</span>`;
+                if(stream) stream.getTracks().forEach(t => t.stop());
+            } else {
+                document.getElementById('status').innerHTML = `<span style="color: red;">Erro: ${data.detail}</span>`;
+            }
+        } catch(e) {
+            document.getElementById('status').innerHTML = `<span style="color: red;">Erro de conexão.</span>`;
+        }
+        btn.innerText = "✅ Salvar e Validar Face";
+        btn.disabled = false;
+    }
+</script>
+</body>
+</html>

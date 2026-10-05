@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Portaria</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.6.0/remixicon.min.css"
+        integrity="sha512-XcIsjKMcuVe0Ucj/xgIXQnytNwBttJbNjltBV18IOnru2lDPe9KRRyvCXw6Y5H415vbBLRm8+q6fmLUU7DfO6Q=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+</head>
+
+<body>
+    <header class="header">
+        <div class="header-content">
+            <div class="header-left">
+                <div class="logo">
+                    <i class="ri-shield-line"></i>
+                </div>
+                <div>
+                    <h1>Sistema de Portaria</h1>
+                    <p class="subtitle">Condomínio Residencial</p>
+                </div>
+            </div>
+            <div class="header-right">
+                <!-- O WebSocket-Status/ws-status-text indica se a conexao com o websocket esta conectado ou nao, entao ele vai ser manipulado se ele estiver offline ele mantem o html e a estilização padrão, caso esteja online ele modifica a cor para --color-success e alterar o texto para conectado -->
+                <div id="websocket-status" class="ws-badge ws-disconnected">
+                    <i class="ri-wifi-line"></i>
+                    <span id="ws-status-text">Conectando...</span>
+                </div>
+                <!-- O clock/ri-time-line & current-time e a onde vai ficar sistema que pega a data e a hora atual e exibe na interface -->
+                <div class="clock">
+                    <i class="ri-time-line"></i>
+                    <span id="current-time"></span>
+                </div>
+                <div class="user-badge">
+                    <i class="ri-user-line"></i>
+                    <span>Porteiro: José Aparecida</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="main-grid">
+            <div class="left-column">
+                <div class="card">
+                    <div class="card-header header-blue">
+                        <i class="ri-webcam-line"></i>
+                        <h2>Verificação de Acesso</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="verification-grid">
+                            <div class="verification-box">
+                                <div class="box-header">
+                                    <i class="ri-car-line"></i>
+                                    <span>Leitura de Placa</span>
+                                </div>
+                                <!-- O box-content vai ser substituido na hora da chegada do veiculo ele vai trocar por a imagem em tempo real da camera da leitura da placa vai ser a foto que vai ser capturada pelo esp32 cam mb e no box-content do reconhecimento facial vai ser o video em tempo real da webcam -->
+                                <div class="box-content" id="plate-display">
+                                    <i class="ri-car-line"></i>
+                                    <p class="empty-text">Aguardando veículo...</p>
+                                </div>
+                            </div>
+
+                            <div class="verification-box">
+                                <div class="box-header">
+                                    <i class="ri-user-3-line"></i>
+                                    <span>Reconhecimento Facial</span>
+                                </div>
+                                <div class="box-content" id="face-display">
+                                    <i class="ri-user-3-line"></i>
+                                    <p class="empty-text">Aguardando pessoa...</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="owner-info-panel"></div>
+                        <div id="parking-occupied-panel"></div>
+                        <div id="status-panel"></div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header header-gray">
+                        <i class="ri-history-line"></i>
+                        <h2>Histórico de Acessos</h2>
+                    </div>
+                    <!-- A Sessão de historico sera aonde ira mostrar todos os problemas entradas e saidas ocorridos anteriormenentes ordenados pelo horario do ocorrido -->
+                    <div class="card-body">
+                        <div id="access-history">
+                            <div class="empty-state">
+                                <i class="ri-history-line"></i>
+                                <p>Nenhum acesso registrado ainda</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="right-column">
+                <div class="card">
+                    <div class="card-header header-orange">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <i class="ri-notification-3-line"></i>
+                            <h2>Alertas</h2>
+                            <span id="alerts-badge" class="badge" style="display: none;">0</span>
+                        </div>
+                        <button id="clear-alerts-btn" class="clear-btn" onclick="clearAlerts()"
+                            style="display: none;">Limpar</button>
+                    </div>
+                    <!-- Na aba de alertas vamos inserir certos cards(Titulo do alerta, descricao, sujeito envolvido, informacoes como data e hora entre outras) ele ira gerar esses cards caso receba do back end inserindo eles em uma ordem super importante, atencao e problema simples, eles vao ser ordenados ou pelas categorias que eles sao ou pela questao de horario emitidos -->
+                    <div class="card-body">
+                        <div id="alerts-list">
+                            <div class="empty-state">
+                                <i class="ri-notification-3-line"></i>
+                                <p>Nenhum alerta ativo</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header header-indigo">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <i class="ri-parking-box-line"></i>
+                            <h2>Status de Vagas</h2>
+                        </div>
+                    </div>
+                    <!-- Aqui nas vagas iremos gerar cards(Numero da vaga, dono, status de ocupada/nao ocupada, se estiver sendo ocupada por qual veiculo(placa do veiculo), se nao for o dono do veiculo ele tras informacoes do morador dono do veiculo que esta na vaga incorreta sempre trabalhando com as cores selecionadas no root do styles.css) -->
+                    <div class="card-body">
+                        <p id="parking-summary" class="parking-summary">Carregando vagas...</p>
+                        <div id="parking-spots"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ParkSync - Mapeamento Interativo de Vagas</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --bg-dark: #1e293b;
+            --border: #e2e8f0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f1f5f9;
+            color: #334155;
+        }
+
+        h1 {
+            margin-top: 0;
+            color: #0f172a;
+        }
+
+        .container {
+            display: flex;
+            gap: 20px;
+            max-width: 1300px;
+            margin: 0 auto;
+        }
+
+        .camera-section {
+            flex: 2;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .canvas-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .canvas-container {
+            position: relative;
+            width: 100%;
+            background-color: var(--bg-dark);
+            border-radius: 4px;
+            overflow: hidden;
+            background-image: linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+
+        canvas {
+            display: block;
+            cursor: crosshair;
+        }
+
+        .camera-label {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: #ef4444;
+            font-weight: bold;
+            font-size: 12px;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 4px 8px;
+            border-radius: 4px;
+            pointer-events: none;
+        }
+
+        .side-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .card {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .step {
+            padding: 15px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            transition: 0.3s;
+            margin-bottom: 15px;
+        }
+
+        .step.disabled {
+            opacity: 0.4;
+            pointer-events: none;
+        }
+
+        .step h3 {
+            margin: 0 0 15px 0;
+            font-size: 16px;
+            color: #0f172a;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        input {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 15px;
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        input:disabled {
+            background-color: #f1f5f9;
+            cursor: not-allowed;
+        }
+
+        button {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-hover);
+        }
+
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #059669;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #cbd5e1;
+            color: #475569;
+        }
+
+        .btn-outline:hover {
+            background: #f1f5f9;
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+            width: auto;
+            padding: 4px 8px;
+            font-size: 12px;
+            margin: 0;
+        }
+
+        .btn-edit {
+            background: #f59e0b;
+            color: white;
+            width: auto;
+            padding: 4px 8px;
+            font-size: 12px;
+            margin: 0;
+        }
+
+        .vaga-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid var(--border);
+            font-size: 14px;
+        }
+
+        .vaga-item:last-child {
+            border-bottom: none;
+        }
+
+        .vaga-actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        #modoEdicaoBanner {
+            background: #f59e0b;
+            color: white;
+            padding: 10px;
+            border-radius: 4px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            display: none;
+            text-align: center;
+        }
+
+        .mock-data {
+            background: #f8fafc;
+            padding: 10px;
+            border-left: 4px solid var(--primary);
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>ParkSync - Mapeamento de Vagas</h1>
+
+    <div class="container">
+        <div class="camera-section">
+            <div class="canvas-toolbar">
+                <div>
+                    <h3>Etapa 1: Desenhe ou Ajuste a Vaga</h3>
+                    <p style="margin:0; font-size:14px; color:#64748b;">
+                        Marque 4 pontos. Depois de marcados, <b>clique e arraste qualquer ponto</b> para ajustar.
+                    </p>
+                </div>
+                <button class="btn-outline" id="btnLimparDesenho" style="width: auto;">Limpar Desenho Atual</button>
+            </div>
+
+            <div class="canvas-container">
+                <div class="camera-label">REC - Câmera Aérea Setor A</div>
+                <!-- O cameraCanvas vai receber uma imagem em tempo real da webcam da area do estacionamento ele recebe a imagem em real do estacionamento enviado pelo back end -->
+                <div style="position: relative; display: inline-block;">
+
+                    <img id="videoBackground" src="http://localhost:8000/api/video_feed" width="800" height="600"
+                        style="display: block; object-fit: cover;">
+
+                    <canvas id="cameraCanvas" width="800" height="600"
+                        style="position: absolute; top: 0; left: 0; z-index: 10; cursor: crosshair; background-color: transparent;">
+                    </canvas>
+
+                </div>
+            </div>
+            <div id="coordenadasDisplay" style="font-family: monospace; color: #64748b; margin-top: 10px;">Aguardando
+                cliques...</div>
+        </div>
+
+        <div class="side-panel">
+            <div class="card">
+                <div id="modoEdicaoBanner">MODO EDIÇÃO ATIVO</div>
+
+                <div class="step disabled" id="step2">
+                    <h3>Etapa 2: Vincular Morador</h3>
+                    <label>ID da Vaga (ex: 101A)</label>
+                    <input type="text" id="vagaId" placeholder="Identificação da vaga">
+
+                    <label>ID do Morador</label>
+                    <input type="number" id="moradorId" placeholder="ID no banco de dados">
+
+                    <button class="btn-primary" id="btnVerificar">Verificar Dados</button>
+                </div>
+
+                <div class="step disabled" id="step3" style="display: none;">
+                    <h3>Etapa 3: Validação</h3>
+                    <div class="mock-data" id="dadosMorador" style="margin-bottom: 15px;"></div>
+                    <button class="btn-success" id="btnConfirmar">Salvar Vaga no MySQL</button>
+                </div>
+
+                <button class="btn-outline" id="btnCancelar">Cancelar / Recomeçar</button>
+            </div>
+
+            <div class="card">
+                <h3 style="margin-top: 0;">Vagas Cadastradas</h3>
+                <div id="listaVagas" style="max-height: 200px; overflow-y: auto;">
+                    <p style="color: #64748b; font-size: 14px; text-align: center;">Nenhuma vaga cadastrada.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // 1. Configuração Global e Variáveis
+        // ==========================================
+        const API_BASE_URL = 'http://localhost:8000'; // Ajuste caso necessário
+
+        let pontos = [];
+        const MAX_PONTOS = 4;
+        const HIT_RADIUS = 12;
+        let pontoArrastadoIndex = -1;
+
+        let vagaEditandoId = null;
+        let vagasCadastradasNoBD = []; // Antigo vagasBancoLocal que agora pega do banco
+
+        const canvas = document.getElementById('cameraCanvas');
+        const ctx = canvas.getContext('2d');
+        const step2 = document.getElementById('step2'), step3 = document.getElementById('step3');
+        const inpVagaId = document.getElementById('vagaId'), inpMoradorId = document.getElementById('moradorId');
+        const displayCoords = document.getElementById('coordenadasDisplay');
+
+        // ==========================================
+        // 2. Sincronização Constante com o Back-End
+        // ==========================================
+        async function buscarAtualizacoesVagas() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/vagas`);
+                if (response.ok) {
+                    vagasCadastradasNoBD = await response.json();
+                    atualizarListaUI();
+                    renderizarCanvas();
+                }
+            } catch (e) {
+                console.error("Falha ao buscar vagas do banco:", e);
+            }
+        }
+
+        // Inicia no primeiro carregamento e fica varrendo a cada 4 segundos
+        buscarAtualizacoesVagas();
+        setInterval(buscarAtualizacoesVagas, 4000);
+
+        function atualizarListaUI() {
+            const container = document.getElementById('listaVagas');
+            if (vagasCadastradasNoBD.length === 0) {
+                container.innerHTML = `<p style="color: #64748b; text-align: center;">Nenhuma vaga cadastrada no banco.</p>`;
+                return;
+            }
+
+            container.innerHTML = vagasCadastradasNoBD.map(vaga => {
+                // Verifica se a vaga já tem as 8 coordenadas preenchidas
+                const estaMapeada = vaga.coordenadas && vaga.coordenadas.length >= 8;
+
+                return `
+        <div class="vaga-item">
+            <div>
+                <strong>Vaga: ${vaga.numero}</strong> (Morador ID: ${vaga.fk_morador_dono})<br>
+                <span style="color: ${estaMapeada ? '#10b981' : '#f59e0b'}; font-weight: bold; font-size:12px;">
+                    ${estaMapeada ? '✅ Mapeada' : '⏳ Aguardando Área'}
+                </span>
+            </div>
+            <div class="vaga-actions">
+                ${estaMapeada ? `<button class="btn-edit" onclick="iniciarEdicao('${vaga.numero}')">✏️ Ajustar</button>` : ''}
+            </div>
+        </div>
+    `}).join('');
+        }
+
+        // ==========================================
+        // 3. Renderização no Canvas (Desenhos e Clicks)
+        // ==========================================
+        function renderizarCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Desenhar as vagas consolidadas que vêm do banco
+            vagasCadastradasNoBD.forEach(vaga => {
+                // Não renderiza a mesma vaga que está sendo editada no momento
+                if (vagaEditandoId === vaga.numero) return;
+
+                if (vaga.coordenadas && vaga.coordenadas.length >= 8) {
+                    // Converte a lista flat do banco [x1,y1, x2,y2...] para grupos locais [[x1,y1], [x2,y2]...]
+                    const coords = [];
+                    for (let i = 0; i < 8; i += 2) {
+                        coords.push([vaga.coordenadas[i], vaga.coordenadas[i + 1]]);
+                    }
+
+                    desenharPoligono(coords, 'rgba(100, 116, 139, 0.2)', '#94a3b8');
+
+                    // Descobrir o centro geográfico para desenhar o número
+                    const centroX = coords.reduce((sum, p) => sum + p[0], 0) / 4;
+                    const centroY = coords.reduce((sum, p) => sum + p[1], 0) / 4;
+                    ctx.fillStyle = "white";
+                    ctx.font = "bold 16px Arial";
+                    ctx.textAlign = "center";
+                    ctx.fillText(vaga.numero, centroX, centroY);
+                }
+            });
+
+            // Desenhar a vaga atual que o usuário está criando/editando
+            if (pontos.length > 0) {
+                const isCompleto = pontos.length === MAX_PONTOS;
+                desenharPoligono(pontos, isCompleto ? 'rgba(16, 185, 129, 0.3)' : null, isCompleto ? '#10b981' : '#3b82f6', true);
+            }
+        }
+
+        function desenharPoligono(coords, corFundo, corLinha, mostrarPontos = false) {
+            if (coords.length === 0) return;
+            ctx.beginPath();
+            ctx.moveTo(coords[0][0], coords[0][1]);
+            for (let i = 1; i < coords.length; i++) ctx.lineTo(coords[i][0], coords[i][1]);
+
+            if (coords.length === MAX_PONTOS) {
+                ctx.closePath();
+                if (corFundo) { ctx.fillStyle = corFundo; ctx.fill(); }
+            }
+            ctx.strokeStyle = corLinha; ctx.lineWidth = 3; ctx.stroke();
+
+            if (mostrarPontos) {
+                coords.forEach((p, index) => {
+                    ctx.beginPath();
+                    ctx.arc(p[0], p[1], index === pontoArrastadoIndex ? 8 : 6, 0, Math.PI * 2);
+                    ctx.fillStyle = index === pontoArrastadoIndex ? '#f59e0b' : '#ef4444';
+                    ctx.fill();
+                    ctx.strokeStyle = 'white';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                });
+            }
+        }
+
+        function obterIndicePontoAlvo(x, y) {
+            for (let i = 0; i < pontos.length; i++) {
+                const dx = pontos[i][0] - x;
+                const dy = pontos[i][1] - y;
+                if (Math.sqrt(dx * dx + dy * dy) <= HIT_RADIUS) return i;
+            }
+            return -1;
+        }
+
+        canvas.addEventListener('mousedown', (event) => {
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = Math.round(event.clientX - rect.left);
+            const mouseY = Math.round(event.clientY - rect.top);
+
+            if (pontos.length === MAX_PONTOS) {
+                pontoArrastadoIndex = obterIndicePontoAlvo(mouseX, mouseY);
+            } else {
+                pontos.push([mouseX, mouseY]);
+                if (pontos.length === MAX_PONTOS) {
+                    displayCoords.innerText = `4 Pontos Fixados! Você pode arrastá-los para ajustar.`;
+                    step2.classList.remove('disabled');
+                } else {
+                    displayCoords.innerText = `Marcação: ${pontos.length}/4`;
+                }
+            }
+            renderizarCanvas();
+        });
+
+        canvas.addEventListener('mousemove', (event) => {
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = Math.round(event.clientX - rect.left);
+            const mouseY = Math.round(event.clientY - rect.top);
+
+            if (pontoArrastadoIndex !== -1) {
+                pontos[pontoArrastadoIndex] = [mouseX, mouseY];
+                renderizarCanvas();
+                displayCoords.innerText = `Ajustando ponto ${pontoArrastadoIndex + 1}...`;
+                canvas.style.cursor = 'grabbing';
+            } else if (pontos.length === MAX_PONTOS) {
+                const hoverIndex = obterIndicePontoAlvo(mouseX, mouseY);
+                canvas.style.cursor = hoverIndex !== -1 ? 'grab' : 'crosshair';
+            }
+        });
+
+        canvas.addEventListener('mouseup', () => {
+            if (pontoArrastadoIndex !== -1) {
+                pontoArrastadoIndex = -1;
+                canvas.style.cursor = 'grab';
+                displayCoords.innerText = `4 Pontos Fixados! Você pode arrastá-los para ajustar.`;
+                renderizarCanvas();
+            }
+        });
+
+        canvas.addEventListener('mouseleave', () => {
+            pontoArrastadoIndex = -1;
+            renderizarCanvas();
+        });
+
+        document.getElementById('btnLimparDesenho').addEventListener('click', () => {
+            pontos = [];
+            renderizarCanvas();
+            step2.classList.add('disabled');
+            step3.classList.add('disabled');
+            step3.style.display = 'none';
+            displayCoords.innerText = `Aguardando cliques...`;
+        });
+
+        // ==========================================
+        // 4. Comunicação: btnVerificar (Step 2)
+        // ==========================================
+        document.getElementById('btnVerificar').addEventListener('click', async () => {
+            const numeroVaga = inpVagaId.value.trim().toUpperCase();
+            const moradorId = inpMoradorId.value.trim();
+
+            if (!numeroVaga || !moradorId) return alert("Preencha o Número da Vaga e o ID do Morador!");
+
+            const btn = document.getElementById('btnVerificar');
+            btn.innerText = "Buscando...";
+            btn.disabled = true;
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/vagas/verificar/${numeroVaga}/${moradorId}`);
+                const data = await response.json();
+
+                if (response.ok) {
+                    document.getElementById('dadosMorador').innerHTML = `
+                <strong>Morador Localizado:</strong> ${data.morador_nome}<br>
+                <small style="color:green;">✓ Vínculo e vaga confirmados. Pronto para atualizar.</small>
+            `;
+                    step3.style.display = 'block';
+                    step3.classList.remove('disabled');
+                    vagaEditandoId = numeroVaga;
+                } else {
+                    alert(data.detail || "Erro na validação. Vaga e Morador não combinam no banco.");
+                }
+            } catch (error) {
+                alert("Erro ao tentar contactar o servidor Backend.");
+            }
+
+            btn.innerText = "Verificar Vínculo";
+            btn.disabled = false;
+        });
+
+        // ==========================================
+        // 5. Comunicação: btnConfirmar (Step 3) - Update
+        // ==========================================
+        document.getElementById('btnConfirmar').addEventListener('click', async () => {
+            if (pontos.length !== 4) return alert("Por favor, desenhe os 4 pontos da vaga no canvas primeiro!");
+
+            const numeroVaga = inpVagaId.value.trim().toUpperCase();
+            const btn = document.getElementById('btnConfirmar');
+            btn.innerText = "Atualizando Vaga...";
+            btn.disabled = true;
+
+            // Converter Array Local [[x,y], [x,y]...] para Array Linear [x1,y1,x2,y2...] (Requisito do Pydantic)
+            const coordenadasConvertidas = pontos.flatMap(p => [Math.round(p[0]), Math.round(p[1])]);
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/vagas/${numeroVaga}/coordenadas`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ coordenadas: coordenadasConvertidas })
+                });
+
+                if (response.ok) {
+                    alert("✅ Coordenadas da vaga mapeadas com sucesso!");
+                    buscarAtualizacoesVagas(); // Força a atualização da lista imediatamente
+                    resetarUI(); // Limpa a tela
+                } else {
+                    const err = await response.json();
+                    alert("Erro ao atualizar coordenadas: " + err.detail);
+                }
+            } catch (error) {
+                alert("Erro crítico de conexão com o servidor FastAPI.");
+            }
+
+            btn.innerText = "Salvar Coordenadas na Vaga";
+            btn.disabled = false;
+        });
+
+        // ==========================================
+        // 6. Funções Auxiliares: Edição e Reset UI
+        // ==========================================
+        window.iniciarEdicao = function (numeroVaga) {
+            const vaga = vagasCadastradasNoBD.find(v => v.numero === numeroVaga);
+            if (!vaga) return;
+
+            vagaEditandoId = vaga.numero;
+
+            // Converte o flat [x, y, x, y] de volta para o ambiente local de desenho [[x,y]]
+            pontos = [];
+            for (let i = 0; i < 8; i += 2) {
+                pontos.push([vaga.coordenadas[i], vaga.coordenadas[i + 1]]);
+            }
+
+            inpVagaId.value = vaga.numero;
+            inpVagaId.disabled = true; // Impede que troque o número durante a edição
+            inpMoradorId.value = vaga.fk_morador_dono;
+
+            const banner = document.getElementById('modoEdicaoBanner');
+            if (banner) banner.style.display = 'block';
+
+            step2.classList.remove('disabled');
+            displayCoords.innerText = `Modo Edição: Arraste os pontos para corrigir a vaga.`;
+            renderizarCanvas();
+        }
+
+        document.getElementById('btnCancelar').addEventListener('click', resetarUI);
+
+        function resetarUI() {
+            pontos = [];
+            vagaEditandoId = null;
+
+            const banner = document.getElementById('modoEdicaoBanner');
+            if (banner) banner.style.display = 'none';
+
+            inpVagaId.value = '';
+            inpMoradorId.value = '';
+            inpVagaId.disabled = false;
+
+            document.getElementById('dadosMorador').innerHTML = 'Aguardando verificação...';
+            step2.classList.add('disabled');
+            step3.classList.add('disabled');
+            step3.style.display = 'none';
+            displayCoords.innerText = `Aguardando cliques...`;
+
+            renderizarCanvas();
+        }
+    </script>
+</body>
+
+</html>
