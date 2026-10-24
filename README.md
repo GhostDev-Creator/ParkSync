@@ -125,4 +125,7 @@ A lógica de acesso da portaria é controlada por 5 Cenários Críticos avaliado
 **Desenvolvedor:** Hudson Henrique Silva Bento - Front-End Mobile
 * **GitHub:** [hudson1902](https://github.com/hudson1902)
 
+**Desenvolvedora:** Amanda Savoy Nunes - Front-end
+* **GitHub:** [Amandasavoy](https://github.com/Amandasavoy)
+
 Projeto desenvolvido como Trabalho de Conclusão de Curso (Jan/2026). Distribuído sob a licença CC BY-NC 4.0.
