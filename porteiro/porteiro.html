@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Portaria</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.6.0/remixicon.min.css"
+        integrity="sha512-XcIsjKMcuVe0Ucj/xgIXQnytNwBttJbNjltBV18IOnru2lDPe9KRRyvCXw6Y5H415vbBLRm8+q6fmLUU7DfO6Q=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        :root {
+            --bg-main: #0f172a;
+            --bg-card: #1e293b;
+            --border-color: rgba(255, 255, 255, 0.08);
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+
+            --color-success: #10b981;
+            --color-error: #ef4444;
+            --color-warning: #f59e0b;
+            --color-primary: #3b82f6;
+            --color-indigo: #6366f1;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-primary);
+            min-height: 100 viewport;
+        }
+
+        /* Header */
+        .header {
+            background-color: var(--bg-card);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1rem 2rem;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header-left,
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo {
+            background-color: rgba(59, 130, 246, 0.2);
+            color: var(--color-primary);
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            font-size: 1.5rem;
+        }
+
+        h1 {
+            font-size: 1.25rem;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        /* WebSocket Badges */
+        .ws-badge {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .ws-connected {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--color-success);
+        }
+
+        .ws-disconnected {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--color-error);
+        }
+
+        .clock,
+        .user-badge {
+            background-color: rgba(255, 255, 255, 0.03);
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Layout */
+        .container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1.5rem;
+        }
+
+        @media(max-width: 968px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .left-column,
+        .right-column {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        /* Cards */
+        .card {
+            background-color: var(--bg-card);
+            border-radius: 0.75rem;
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 1rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .card-header h2 {
+            font-size: 1.1rem;
+            flex: 1;
+        }
+
+        .header-blue {
+            border-left: 4px solid var(--color-primary);
+        }
+
+        .header-gray {
+            border-left: 4px solid var(--text-secondary);
+        }
+
+        .header-orange {
+            border-left: 4px solid var(--color-warning);
+        }
+
+        .header-indigo {
+            border-left: 4px solid var(--color-indigo);
+        }
+
+        .card-body {
+            padding: 1.5rem;
+        }
+
+        /* Grid de Verificação */
+        .verification-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .verification-box {
+            background: rgba(0, 0, 0, 0.15);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            overflow: hidden;
+        }
+
+        .box-header {
+            background: rgba(255, 255, 255, 0.02);
+            padding: 0.5rem 1rem;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .box-content {
+            padding: 2rem;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 140px;
+        }
+
+        .empty-text {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+
+        .license-plate {
+            background: white;
+            color: black;
+            font-weight: bold;
+            font-family: monospace;
+            font-size: 2rem;
+            padding: 0.25rem 1.5rem;
+            border-radius: 4px;
+            border: 3px solid black;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            margin-bottom: 10px;
+        }
+
+        /* Badges de Status */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 10px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .status-success {
+            background: rgba(16, 185, 129, 0.2);
+            color: #34d399;
+        }
+
+        .status-error {
+            background: rgba(239, 68, 68, 0.2);
+            color: #f87171;
+        }
+
+        .status-warning {
+            background: rgba(245, 158, 11, 0.2);
+            color: #fbbf24;
+        }
+
+        /* Painéis de Decisões Especiais */
+        .status-panel,
+        .owner-panel,
+        .parking-panel {
+            border-radius: 0.5rem;
+            padding: 1.25rem;
+            margin-top: 1rem;
+            border: 1px solid transparent;
+        }
+
+        .status-approved {
+            background: rgba(16, 185, 129, 0.1);
+            border-color: var(--color-success);
+        }
+
+        .status-denied {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: var(--color-error);
+        }
+
+        .status-pending {
+            background: rgba(245, 158, 11, 0.1);
+            border-color: var(--color-warning);
+        }
+
+        .status-title {
+            font-weight: bold;
+            font-size: 1.1rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .status-message {
+            font-size: 0.95rem;
+            opacity: 0.9;
+        }
+
+        .status-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .status-btn {
+            flex: 1;
+            padding: 0.6rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .btn-approve {
+            background: var(--color-success);
+            color: white;
+        }
+
+        .btn-deny {
+            background: var(--color-error);
+            color: white;
+        }
+
+        /* Dono / Vaga */
+        .owner-panel {
+            background: rgba(59, 130, 246, 0.05);
+            border-color: rgba(59, 130, 246, 0.3);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+
+        .owner-title {
+            font-size: 1rem;
+            margin-bottom: 10px;
+        }
+
+        .owner-info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            font-size: 0.9rem;
+        }
+
+        .info-label {
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+        }
+
+        .info-value {
+            font-weight: bold;
+        }
+
+        .owner-warning {
+            background: rgba(245, 158, 11, 0.15);
+            padding: 8px;
+            border-radius: 4px;
+            color: var(--color-warning);
+            font-size: 0.8rem;
+            margin: 15px 0;
+            text-align: center;
+        }
+
+        .quick-actions-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-bottom: 5px;
+        }
+
+        .actions-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .action-btn {
+            padding: 0.5rem;
+            border: none;
+            border-radius: 4px;
+            color: white;
+            font-size: 0.8rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+
+        .btn-green {
+            background: #059669;
+        }
+
+        .btn-blue {
+            background: #2563eb;
+        }
+
+        .btn-orange {
+            background: #d97706;
+        }
+
+        .btn-purple {
+            background: #7c3aed;
+        }
+
+        .btn-red {
+            background: #dc2626;
+        }
+
+        /* Estacionamento comparador irregular */
+        .parking-panel {
+            background: rgba(239, 68, 68, 0.05);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .parking-title {
+            color: #f87171;
+            font-size: 1rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .comparison-section h4 {
+            font-size: 0.75rem;
+            margin-bottom: 5px;
+            color: var(--text-secondary);
+        }
+
+        .comparison-box {
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+        }
+
+        .box-green {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .box-red {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
+        /* Vagas Coluna Direita */
+        .parking-summary {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+        }
+
+        #parking-spots {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 380px;
+            overflow-y: auto;
+        }
+
+        .spot-item {
+            padding: 10px;
+            border-radius: 6px;
+            background: rgba(0, 0, 0, 0.2);
+            border-left: 4px solid transparent;
+            font-size: 0.85rem;
+        }
+
+        .spot-occupied {
+            border-left-color: var(--color-error);
+        }
+
+        .spot-free {
+            border-left-color: var(--color-success);
+        }
+
+        .spot-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 4px;
+            font-weight: bold;
+        }
+
+        .spot-owner {
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+        }
+
+        .spot-plate {
+            font-family: monospace;
+            background: rgba(255, 255, 255, 0.05);
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-top: 5px;
+        }
+
+        /* Alertas */
+        #alerts-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .alert-item {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid rgba(245, 158, 11, 0.2);
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            color: #fcd34d;
+        }
+
+        .badge {
+            background: var(--color-error);
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+
+        .clear-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+
+        .clear-btn:hover {
+            color: white;
+        }
+
+        /* Histórico */
+        #access-history {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .history-item {
+            background: rgba(0, 0, 0, 0.15);
+            padding: 12px;
+            border-radius: 6px;
+            border-left: 3px solid transparent;
+            font-size: 0.85rem;
+        }
+
+        .history-approved {
+            border-left-color: var(--color-success);
+        }
+
+        .history-denied {
+            border-left-color: var(--color-error);
+        }
+
+        .history-pending {
+            border-left-color: var(--color-warning);
+        }
+
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .history-time {
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="header">
+        <div class="header-content">
+            <div class="header-left">
+                <div class="logo">
+                    <i class="ri-shield-line"></i>
+                </div>
+                <div>
+                    <h1>Sistema de Portaria</h1>
+                    <p class="subtitle">Condomínio Residencial</p>
+                </div>
+            </div>
+            <div class="header-right">
+                <!-- O WebSocket-Status/ws-status-text indica se a conexao com o websocket esta conectado ou nao, entao ele vai ser manipulado se ele estiver offline ele mantem o html e a estilização padrão, caso esteja online ele modifica a cor para --color-success e alterar o texto para conectado -->
+                <div id="websocket-status" class="ws-badge ws-disconnected">
+                    <i class="ri-wifi-line"></i>
+                    <span id="ws-status-text">Conectando...</span>
+                </div>
+                <!-- O clock/ri-time-line & current-time e a onde vai ficar sistema que pega a data e a hora atual e exibe na interface -->
+                <div class="clock">
+                    <i class="ri-time-line"></i>
+                    <span id="current-time"></span>
+                </div>
+                <div class="user-badge">
+                    <i class="ri-user-line"></i>
+                    <span>Porteiro: José Aparecida</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="main-grid">
+            <div class="left-column">
+                <div class="card">
+                    <div class="card-header header-blue">
+                        <i class="ri-webcam-line"></i>
+                        <h2>Verificação de Acesso</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="verification-grid">
+                            <div class="verification-box">
+                                <div class="box-header">
+                                    <i class="ri-car-line"></i>
+                                    <span>Leitura de Placa</span>
+                                </div>
+                                <!-- O box-content vai ser substituido na hora da chegada do veiculo ele vai trocar por a imagem em tempo real da camera da leitura da placa vai ser a foto que vai ser capturada pelo esp32 cam mb e no box-content do reconhecimento facial vai ser o video em tempo real da webcam -->
+                                <div class="box-content" id="plate-display">
+                                    <i class="ri-car-line"></i>
+                                    <p class="empty-text">Aguardando veículo...</p>
+                                </div>
+                            </div>
+
+                            <div class="verification-box">
+                                <div class="box-header">
+                                    <i class="ri-user-3-line"></i>
+                                    <span>Reconhecimento Facial</span>
+                                </div>
+                                <div class="box-content" id="face-display">
+                                    <i class="ri-user-3-line"></i>
+                                    <p class="empty-text">Aguardando pessoa...</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="owner-info-panel"></div>
+                        <div id="parking-occupied-panel"></div>
+                        <div id="status-panel"></div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header header-gray">
+                        <i class="ri-history-line"></i>
+                        <h2>Histórico de Acessos</h2>
+                    </div>
+                    <!-- A Sessão de historico sera aonde ira mostrar todos os problemas entradas e saidas ocorridos anteriormenentes ordenados pelo horario do ocorrido -->
+                    <div class="card-body">
+                        <div id="access-history">
+                            <div class="empty-state">
+                                <i class="ri-history-line"></i>
+                                <p>Nenhum acesso registrado ainda</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="right-column">
+                <div class="card">
+                    <div class="card-header header-orange">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <i class="ri-notification-3-line"></i>
+                            <h2>Alertas</h2>
+                            <span id="alerts-badge" class="badge" style="display: none;">0</span>
+                        </div>
+                        <button id="clear-alerts-btn" class="clear-btn" onclick="clearAlerts()"
+                            style="display: none;">Limpar</button>
+                    </div>
+                    <!-- Na aba de alertas vamos inserir certos cards(Titulo do alerta, descricao, sujeito envolvido, informacoes como data e hora entre outras) ele ira gerar esses cards caso receba do back end inserindo eles em uma ordem super importante, atencao e problema simples, eles vao ser ordenados ou pelas categorias que eles sao ou pela questao de horario emitidos -->
+                    <div class="card-body">
+                        <div id="alerts-list">
+                            <div class="empty-state">
+                                <i class="ri-notification-3-line"></i>
+                                <p>Nenhum alerta ativo</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header header-indigo">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <i class="ri-parking-box-line"></i>
+                            <h2>Status de Vagas</h2>
+                        </div>
+                    </div>
+                    <!-- Aqui nas vagas iremos gerar cards(Numero da vaga, dono, status de ocupada/nao ocupada, se estiver sendo ocupada por qual veiculo(placa do veiculo), se nao for o dono do veiculo ele tras informacoes do morador dono do veiculo que esta na vaga incorreta sempre trabalhando com as cores selecionadas no root do styles.css) -->
+                    <div class="card-body">
+                        <p id="parking-summary" class="parking-summary">Carregando vagas...</p>
+                        <div id="parking-spots"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // 🕒 CONTROLE DE DATA E HORA
+        // ==========================================
+        function atualizarRelogio() {
+            const elementoRelogio = document.getElementById('current-time');
+            if (elementoRelogio) {
+                const agora = new Date();
+                const opcoesData = { day: '2-digit', month: '2-digit', year: 'numeric' };
+                const opcoesHora = { hour: '2-digit', minute: '2-digit', second: '2-digit' };
+                const dataFormatada = agora.toLocaleDateString('pt-BR', opcoesData);
+                const horaFormatada = agora.toLocaleTimeString('pt-BR', opcoesHora);
+                elementoRelogio.textContent = `${dataFormatada} - ${horaFormatada}`;
+            }
+        }
+        setInterval(atualizarRelogio, 1000);
+        atualizarRelogio();
+
+        // ==========================================
+        // 📡 CONEXÃO WEBSOCKET E STATUS
+        // ==========================================
+        let ws;
+        const wsStatusText = document.getElementById('ws-status-text');
+        const wsStatusBadge = document.getElementById("websocket-status");
+
+        function conectarWebSocket() {
+            ws = new WebSocket(`ws://127.0.0.1:8000/ws/portaria`);
+
+            ws.onopen = () => {
+                if (wsStatusText && wsStatusBadge) {
+                    wsStatusText.textContent = "Servidor Online";
+                    wsStatusBadge.classList.remove("ws-disconnected");
+                    wsStatusBadge.classList.add("ws-connected");
+                }
+                carregarDadosIniciais();
+            };
+
+            ws.onclose = () => {
+                if (wsStatusText && wsStatusBadge) {
+                    wsStatusText.textContent = "Servidor Offline - Reconectando...";
+                    wsStatusBadge.classList.remove("ws-connected");
+                    wsStatusBadge.classList.add("ws-disconnected");
+                }
+                setTimeout(conectarWebSocket, 3000);
+            };
+
+            ws.onmessage = (event) => {
+                const dados = JSON.parse(event.data);
+                processarMensagemTempoReal(dados);
+            };
+        }
+        conectarWebSocket();
+
+        // ==========================================
+        // 🔄 CARREGAMENTO INICIAL (REST API)
+        // ==========================================
+        async function carregarDadosIniciais() {
+            try {
+                const response = await fetch('http://127.0.0.1:8000/api/portaria/iniciar-dados');
+                const dados = await response.json();
+                renderizarHistorico(dados.historico);
+                renderizarAlertas(dados.alertas);
+                renderizarVagas(dados.vagas);
+            } catch (error) {
+                console.error("Erro ao buscar dados iniciais:", error);
+            }
+        }
+
+        // ==========================================
+        // 🛠️ RENDERIZAÇÃO DOS CARDS
+        // ==========================================
+        function renderizarHistorico(historicoList) {
+            const container = document.getElementById('access-history'); // CORRIGIDO O ID AQUI
+            if (!container) return;
+            container.innerHTML = '';
+
+            if (historicoList.length === 0) {
+                container.innerHTML = `<div class="empty-state"><i class="ri-history-line"></i><p>Nenhum acesso registrado</p></div>`;
+                return;
+            }
+
+            historicoList.forEach(log => {
+                let borderCor = log.tipo.includes("NEGADO") ? "border-left: 4px solid #ef4444;" : "border-left: 4px solid #10b981;";
+                const card = `
+                <div style="padding: 10px; margin-bottom: 10px; background: rgba(0,0,0,0.15); border-radius: 5px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); ${borderCor}">
+                    <div style="display:flex; justify-content: space-between;">
+                        <strong>${log.tipo.replace('_', ' ')}</strong>
+                        <small style="color: #94a3b8;">${log.data_hora}</small>
+                    </div>
+                    <span style="font-family: monospace; background: rgba(255,255,255,0.05); padding: 2px 6px; border-radius: 4px; margin-top: 5px; display: inline-block;">Placa: <b>${log.placa}</b></span>
+                </div>`;
+                container.innerHTML += card;
+            });
+        }
+
+        function renderizarAlertas(alertasList) {
+            const container = document.getElementById('alerts-list');
+            const badge = document.getElementById('alerts-badge');
+            if (!container) return;
+
+            if (alertasList.length === 0) {
+                container.innerHTML = `<div class="empty-state"><i class="ri-notification-3-line"></i><p>Nenhum alerta ativo</p></div>`;
+                if (badge) badge.style.display = 'none';
+                return;
+            }
+
+            if (badge) {
+                badge.style.display = 'inline-block';
+                badge.innerText = alertasList.length;
+            }
+
+            container.innerHTML = '';
+            alertasList.forEach(alerta => {
+                let icon = alerta.tipo.includes("INVASAO") ? "ri-shield-keyhole-line" : "ri-car-line";
+                let colorClass = alerta.tipo.includes("INVASAO") ? "border: 1px solid #ef4444; color: #f87171;" : "border: 1px solid #f59e0b; color: #fcd34d;";
+
+                const card = `
+                <div style="background: rgba(0,0,0,0.2); padding: 12px; margin-bottom: 10px; border-radius: 5px; ${colorClass}">
+                    <div style="font-weight: bold; margin-bottom: 5px;">
+                        <i class="${icon}"></i> ${alerta.tipo.replace('_', ' ')}
+                    </div>
+                    <p style="margin: 0; font-size: 13px; color: #f8fafc;">${alerta.descricao}</p>
+                    <small style="color: #94a3b8; margin-top: 5px; display: block;">${alerta.data_hora}</small>
+                </div>`;
+                container.innerHTML += card;
+            });
+        }
+
+        function renderizarVagas(vagasList) {
+            const container = document.getElementById('parking-spots');
+            const summary = document.getElementById('parking-summary');
+            if (!container) return;
+
+            container.innerHTML = '';
+            let ocupadas = 0;
+            let conflitos = 0;
+
+            vagasList.forEach(vaga => {
+                let corStatus = "#10b981"; // Verde (Livre)
+                let textoStatus = "LIVRE";
+
+                if (vaga.conflito) {
+                    corStatus = "#ef4444"; // Vermelho
+                    textoStatus = "CONFLITO!";
+                    conflitos++;
+                } else if (vaga.ocupada) {
+                    corStatus = "#f59e0b"; // Laranja
+                    textoStatus = "OCUPADA";
+                    ocupadas++;
+                }
+
+                const infoVeiculo = vaga.ocupada ? `<span class="spot-plate">${vaga.placa_atual || 'Lendo...'}</span>` : '';
+
+                const card = `
+                <div style="border-left: 4px solid ${corStatus}; padding: 10px; margin-bottom: 10px; background: rgba(0,0,0,0.2); border-radius: 4px;">
+                    <div style="display: flex; justify-content: space-between;">
+                        <strong>Vaga ${vaga.numero}</strong>
+                        <span style="color: ${corStatus}; font-size: 11px; font-weight: bold;">${textoStatus}</span>
+                    </div>
+                    <div style="font-size: 12px; color: #94a3b8; margin-top: 5px;">
+                        ${vaga.dono_nome} (Apt: ${vaga.dono_apt})<br>
+                        ${infoVeiculo}
+                    </div>
+                </div>`;
+                container.innerHTML += card;
+            });
+
+            if (summary) summary.innerHTML = `Total: <b>${vagasList.length}</b> | Ocupadas: <b>${ocupadas}</b> | Conflitos: <b style="color:#ef4444">${conflitos}</b>`;
+        }
+
+        // ==========================================
+        // 🚀 PROCESSAR EVENTOS EM TEMPO REAL (WEBSOCKET)
+        // ==========================================
+        function processarMensagemTempoReal(dados) {
+            if (dados.evento === "ATUALIZACAO_VAGAS" || dados.evento === "NOVO_ACESSO") {
+                carregarDadosIniciais();
+            }
+            else if (dados.evento === "NOVO_ALERTA") {
+                carregarDadosIniciais();
+                tocarSomAlerta();
+            }
+            else if (dados.evento === "IMAGEM_CAPTURADA") {
+                // Atualiza a imagem na tela instantaneamente sem precisar recarregar o banco
+                if (dados.camera === "PLACA") {
+                    const box = document.getElementById('plate-display');
+                    if (box) {
+                        box.innerHTML = '';
+                        box.style.backgroundImage = `url('data:image/jpeg;base64,${dados.base64}')`;
+                        box.style.backgroundSize = "cover";
+                        box.style.backgroundPosition = "center";
+                    }
+                }
+                if (dados.camera === "ROSTO") {
+                    const box = document.getElementById('face-display');
+                    if (box) {
+                        box.innerHTML = '';
+                        box.style.backgroundImage = `url('data:image/jpeg;base64,${dados.base64}')`;
+                        box.style.backgroundSize = "cover";
+                        box.style.backgroundPosition = "center";
+                    }
+                }
+            }
+        }
+
+        function tocarSomAlerta() {
+            console.log("🚨 BEEP BEEP BEEP!");
+            // const audio = new Audio('alerta.mp3'); audio.play();
+        }
+    </script>
+</body>
+
+</html>
