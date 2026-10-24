@@ -25,3 +25,55 @@
 Thumbs.db
 *.log
 .env
+
+# ==========================================
+# React Native / Expo (Configuração Externa)
+# ==========================================
+**/node_modules/
+**/.expo/
+**/.expo-shared/
+**/web-build/
+**/expo-env.d.ts
+**/.metro-health-check*
+
+# Pastas nativas geradas pelo Expo (iOS e Android)
+**/ios/
+**/android/
+**/.kotlin/
+
+# Artefatos de Build e Distribuição
+**/dist/
+**/build/
+**/.pio/
+
+# Logs e Debug
+*.log
+**/npm-debug.*
+**/yarn-debug.*
+**/yarn-error.*
+
+# Arquivos de Configuração Local e Chaves (Segurança)
+.env
+.env*.local
+*.jks
+*.p8
+*.p12
+*.key
+*.pem
+*.mobileprovision
+
+# Python / Arquivos virtuais e cache
+**/__pycache__/
+*.py[cod]
+*$py.class
+**/.venv/
+**/venv/
+**/ENV/
+**/env/
+
+# IDEs e Arquivos de Sistema
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.tsbuildinfo
