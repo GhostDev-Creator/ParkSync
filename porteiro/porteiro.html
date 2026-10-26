@@ -1,0 +1,1223 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Portaria</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.6.0/remixicon.min.css"
+        integrity="sha512-XcIsjKMcuVe0Ucj/xgIXQnytNwBttJbNjltBV18IOnru2lDPe9KRRyvCXw6Y5H415vbBLRm8+q6fmLUU7DfO6Q=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        :root {
+            --bg-main: #0f172a;
+            --bg-card: #1e293b;
+            --border-color: rgba(255, 255, 255, 0.08);
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+
+            --color-success: #10b981;
+            --color-error: #ef4444;
+            --color-warning: #f59e0b;
+            --color-primary: #3b82f6;
+            --color-indigo: #6366f1;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            background-color: var(--bg-card);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1rem 2rem;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header-left,
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo {
+            background-color: rgba(59, 130, 246, 0.2);
+            color: var(--color-primary);
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            font-size: 1.5rem;
+        }
+
+        h1 {
+            font-size: 1.25rem;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        /* WebSocket Badges */
+        .ws-badge {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .ws-connected {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--color-success);
+        }
+
+        .ws-disconnected {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--color-error);
+        }
+
+        .clock,
+        .user-badge {
+            background-color: rgba(255, 255, 255, 0.03);
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Layout */
+        .container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1.5rem;
+        }
+
+        @media(max-width: 968px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .left-column,
+        .right-column {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        /* Cards */
+        .card {
+            background-color: var(--bg-card);
+            border-radius: 0.75rem;
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 1rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .card-header h2 {
+            font-size: 1.1rem;
+            flex: 1;
+        }
+
+        .header-blue {
+            border-left: 4px solid var(--color-primary);
+        }
+
+        .header-gray {
+            border-left: 4px solid var(--text-secondary);
+        }
+
+        .header-orange {
+            border-left: 4px solid var(--color-warning);
+        }
+
+        .header-indigo {
+            border-left: 4px solid var(--color-indigo);
+        }
+
+        .card-body {
+            padding: 1.5rem;
+        }
+
+        /* Grid de Verificação */
+        .verification-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .verification-box {
+            background: rgba(0, 0, 0, 0.15);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            overflow: hidden;
+        }
+
+        .box-header {
+            background: rgba(255, 255, 255, 0.02);
+            padding: 0.5rem 1rem;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .box-content {
+            padding: 2rem;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 140px;
+        }
+
+        .empty-text {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+
+        .license-plate {
+            background: white;
+            color: black;
+            font-weight: bold;
+            font-family: monospace;
+            font-size: 2rem;
+            padding: 0.25rem 1.5rem;
+            border-radius: 4px;
+            border: 3px solid black;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            margin-bottom: 10px;
+        }
+
+        /* Badges de Status */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 10px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .status-success {
+            background: rgba(16, 185, 129, 0.2);
+            color: #34d399;
+        }
+
+        .status-error {
+            background: rgba(239, 68, 68, 0.2);
+            color: #f87171;
+        }
+
+        .status-warning {
+            background: rgba(245, 158, 11, 0.2);
+            color: #fbbf24;
+        }
+
+        /* Painéis de Decisões Especiais */
+        .status-panel,
+        .owner-panel,
+        .parking-panel {
+            border-radius: 0.5rem;
+            padding: 1.25rem;
+            margin-top: 1rem;
+            border: 1px solid transparent;
+        }
+
+        .status-approved {
+            background: rgba(16, 185, 129, 0.1);
+            border-color: var(--color-success);
+        }
+
+        .status-denied {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: var(--color-error);
+        }
+
+        .status-pending {
+            background: rgba(245, 158, 11, 0.1);
+            border-color: var(--color-warning);
+        }
+
+        .status-title {
+            font-weight: bold;
+            font-size: 1.1rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .status-message {
+            font-size: 0.95rem;
+            opacity: 0.9;
+        }
+
+        .status-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .status-btn {
+            flex: 1;
+            padding: 0.6rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .btn-approve {
+            background: var(--color-success);
+            color: white;
+        }
+
+        .btn-deny {
+            background: var(--color-error);
+            color: white;
+        }
+
+        /* Dono / Vaga */
+        .owner-panel {
+            background: rgba(59, 130, 246, 0.05);
+            border-color: rgba(59, 130, 246, 0.3);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+
+        .owner-title {
+            font-size: 1rem;
+            margin-bottom: 10px;
+        }
+
+        .owner-info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            font-size: 0.9rem;
+        }
+
+        .info-label {
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+        }
+
+        .info-value {
+            font-weight: bold;
+        }
+
+        .owner-warning {
+            background: rgba(245, 158, 11, 0.15);
+            padding: 8px;
+            border-radius: 4px;
+            color: var(--color-warning);
+            font-size: 0.8rem;
+            margin: 15px 0;
+            text-align: center;
+        }
+
+        .quick-actions-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-bottom: 5px;
+        }
+
+        .actions-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .action-btn {
+            padding: 0.5rem;
+            border: none;
+            border-radius: 4px;
+            color: white;
+            font-size: 0.8rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+
+        .btn-green {
+            background: #059669;
+        }
+
+        .btn-blue {
+            background: #2563eb;
+        }
+
+        .btn-orange {
+            background: #d97706;
+        }
+
+        .btn-purple {
+            background: #7c3aed;
+        }
+
+        .btn-red {
+            background: #dc2626;
+        }
+
+        /* Estacionamento comparador irregular */
+        .parking-panel {
+            background: rgba(239, 68, 68, 0.05);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .parking-title {
+            color: #f87171;
+            font-size: 1rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .comparison-section h4 {
+            font-size: 0.75rem;
+            margin-bottom: 5px;
+            color: var(--text-secondary);
+        }
+
+        .comparison-box {
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+        }
+
+        .box-green {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .box-red {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
+        /* Vagas Coluna Direita */
+        .parking-summary {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+        }
+
+        #parking-spots {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 380px;
+            overflow-y: auto;
+        }
+
+        .spot-item {
+            padding: 10px;
+            border-radius: 6px;
+            background: rgba(0, 0, 0, 0.2);
+            border-left: 4px solid transparent;
+            font-size: 0.85rem;
+        }
+
+        .spot-occupied {
+            border-left-color: var(--color-error);
+        }
+
+        .spot-free {
+            border-left-color: var(--color-success);
+        }
+
+        .spot-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 4px;
+            font-weight: bold;
+        }
+
+        .spot-owner {
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+        }
+
+        .spot-plate {
+            font-family: monospace;
+            background: rgba(255, 255, 255, 0.05);
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-top: 5px;
+        }
+
+        /* Alertas */
+        #alerts-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .alert-item {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid rgba(245, 158, 11, 0.2);
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            color: #fcd34d;
+        }
+
+        .badge {
+            background: var(--color-error);
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+
+        .clear-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+
+        .clear-btn:hover {
+            color: white;
+        }
+
+        /* Histórico */
+        #access-history {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .history-item {
+            background: rgba(0, 0, 0, 0.15);
+            padding: 12px;
+            border-radius: 6px;
+            border-left: 3px solid transparent;
+            font-size: 0.85rem;
+        }
+
+        .history-approved {
+            border-left-color: var(--color-success);
+        }
+
+        .history-denied {
+            border-left-color: var(--color-error);
+        }
+
+        .history-pending {
+            border-left-color: var(--color-warning);
+        }
+
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .history-time {
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        /* Imagens capturadas (placa / rosto) */
+        .box-content.com-imagem {
+            padding: 0;
+        }
+
+        .box-content img {
+            width: 100%;
+            height: 100%;
+            max-height: 260px;
+            object-fit: cover;
+            display: block;
+        }
+
+        .history-meta {
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            margin-top: 4px;
+        }
+
+        .alert-item.alerta-grave {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: rgba(239, 68, 68, 0.4);
+            color: #f87171;
+        }
+
+        .alert-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .alert-desc {
+            font-size: 13px;
+            color: var(--text-primary);
+        }
+
+        .alert-time {
+            color: var(--text-secondary);
+            margin-top: 5px;
+            display: block;
+        }
+
+        .resolver-btn {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            border-radius: 4px;
+            padding: 2px 8px;
+            font-size: 0.75rem;
+            cursor: pointer;
+        }
+
+        .action-btn:disabled,
+        .resolver-btn:disabled {
+            opacity: 0.5;
+            cursor: wait;
+        }
+
+        .server-info {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="header">
+        <div class="header-content">
+            <div class="header-left">
+                <div class="logo">
+                    <i class="ri-shield-line"></i>
+                </div>
+                <div>
+                    <h1>Sistema de Portaria</h1>
+                    <p class="subtitle">Condomínio Residencial</p>
+                </div>
+            </div>
+            <div class="header-right">
+                <!-- Badge do WebSocket: vermelho enquanto desconectado, verde quando conectado -->
+                <div id="websocket-status" class="ws-badge ws-disconnected">
+                    <i class="ri-wifi-line"></i>
+                    <span id="ws-status-text">Conectando...</span>
+                </div>
+                <div class="clock">
+                    <i class="ri-time-line"></i>
+                    <span id="current-time"></span>
+                </div>
+                <div class="user-badge">
+                    <i class="ri-user-line"></i>
+                    <span>Porteiro: José Aparecida</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="main-grid">
+            <div class="left-column">
+                <div class="card">
+                    <div class="card-header header-blue">
+                        <i class="ri-webcam-line"></i>
+                        <h2>Verificação de Acesso</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="verification-grid">
+                            <div class="verification-box">
+                                <div class="box-header">
+                                    <i class="ri-car-line"></i>
+                                    <span>Leitura de Placa</span>
+                                </div>
+                                <!-- Recebe a foto da ESP32-CAM pelo evento IMAGEM_CAPTURADA (camera="PLACA") -->
+                                <div class="box-content" id="plate-display"></div>
+                            </div>
+
+                            <div class="verification-box">
+                                <div class="box-header">
+                                    <i class="ri-user-3-line"></i>
+                                    <span>Reconhecimento Facial</span>
+                                </div>
+                                <!-- Recebe o frame da webcam pelo evento IMAGEM_CAPTURADA (camera="ROSTO") -->
+                                <div class="box-content" id="face-display"></div>
+                            </div>
+                        </div>
+
+                        <div id="owner-info-panel"></div>
+                        <div id="parking-occupied-panel"></div>
+                        <!-- Resultado do último acesso (preenchido no evento NOVO_ACESSO) -->
+                        <div id="status-panel"></div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header header-gray">
+                        <i class="ri-history-line"></i>
+                        <h2>Histórico de Acessos</h2>
+                    </div>
+                    <div class="card-body">
+                        <div id="access-history">
+                            <div class="empty-state">
+                                <i class="ri-history-line"></i>
+                                <p>Nenhum acesso registrado ainda</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="right-column">
+                <div class="card">
+                    <div class="card-header header-blue">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <i class="ri-door-open-line"></i>
+                            <h2>Controle Manual</h2>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <p class="quick-actions-label">Cancelas</p>
+                        <div class="actions-grid">
+                            <button class="action-btn btn-green" data-acao="abrir" data-lado="entrada">
+                                <i class="ri-login-box-line"></i> Abrir entrada</button>
+                            <button class="action-btn btn-orange" data-acao="abrir" data-lado="saida">
+                                <i class="ri-logout-box-line"></i> Abrir saída</button>
+                        </div>
+                        <p class="quick-actions-label" style="margin-top: 12px;">Testar sem a ESP32 (simula o sensor)</p>
+                        <div class="actions-grid">
+                            <button class="action-btn btn-blue" data-acao="simular" data-lado="entrada">
+                                <i class="ri-car-line"></i> Carro na entrada</button>
+                            <button class="action-btn btn-purple" data-acao="simular" data-lado="saida">
+                                <i class="ri-car-line"></i> Carro na saída</button>
+                        </div>
+                        <p id="server-info" class="server-info">Verificando servidor...</p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header header-orange">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <i class="ri-notification-3-line"></i>
+                            <h2>Alertas</h2>
+                            <span id="alerts-badge" class="badge" style="display: none;">0</span>
+                        </div>
+                        <button id="clear-alerts-btn" class="clear-btn" style="display: none;">Resolver todos</button>
+                    </div>
+                    <div class="card-body">
+                        <div id="alerts-list">
+                            <div class="empty-state">
+                                <i class="ri-notification-3-line"></i>
+                                <p>Nenhum alerta ativo</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header header-indigo">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <i class="ri-parking-box-line"></i>
+                            <h2>Status de Vagas</h2>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <p id="parking-summary" class="parking-summary">Carregando vagas...</p>
+                        <div id="parking-spots"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // ⚙️ CONFIGURAÇÃO
+        // Endereço da API: abra com ?api=http://IP_DO_PC:8000 (fica salvo no navegador).
+        // Sem isso usa http://127.0.0.1:8000.
+        // Se o .env tiver PORTARIA_API_KEY, abra também com ?chave=SUA_CHAVE (fica salva).
+        // ==========================================
+        function configSalva(param, chaveStorage) {
+            let valor = new URLSearchParams(location.search).get(param);
+            try {
+                if (valor) localStorage.setItem(chaveStorage, valor);
+                else valor = localStorage.getItem(chaveStorage);
+            } catch (e) { /* navegador sem localStorage */ }
+            return valor || '';
+        }
+
+        const API_BASE = (configSalva('api', 'parksync_api') ||
+            (location.protocol.startsWith('http') && location.port === '8000' ? location.origin : 'http://127.0.0.1:8000')
+        ).replace(/\/+$/, '');
+        const WS_URL = API_BASE.replace(/^http/, 'ws') + '/ws/portaria';
+        const PORTARIA_KEY = configSalva('chave', 'parksync_chave');
+        const TEMPO_LIMPAR_VERIFICACAO = 30000; // some com fotos/resultado 30 s após o último evento
+
+        const $ = (id) => document.getElementById(id);
+
+        // Escapa tudo que vem do banco antes de virar HTML (placa lida por OCR, nomes, textos de alerta)
+        const MAPA_ESCAPE = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+        const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => MAPA_ESCAPE[c]);
+
+        const ROTULOS = {
+            ENTRADA: 'Entrada', SAIDA: 'Saída', MORADOR: 'Morador', VISITANTE: 'Visitante',
+            TEMPORARIO: 'Temporário', NEGADO: 'Negado', MANUAL: 'Manual',
+        };
+        const rotuloTipo = (tipo) => String(tipo || '').split('_').map(p => ROTULOS[p] || p).join(' · ');
+        const rotuloAlerta = (tipo) => String(tipo || 'ALERTA').replace(/_/g, ' ');
+        const alertaGrave = (tipo) => /INVASAO|SUSPEITA|NAO_CONFERE|OUTRO_MORADOR/.test(tipo || '');
+
+        async function chamarApi(caminho, opcoes = {}, ms = 10000) {
+            const ctrl = new AbortController();
+            const timer = setTimeout(() => ctrl.abort(), ms);
+            const headers = { ...(opcoes.headers || {}) };
+            if (PORTARIA_KEY) headers['X-Portaria-Key'] = PORTARIA_KEY;
+            try {
+                const res = await fetch(API_BASE + caminho, { ...opcoes, headers, signal: ctrl.signal });
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok) {
+                    let msg = typeof data.detail === 'string' ? data.detail : `Erro HTTP ${res.status}`;
+                    if (res.status === 403) msg += ' (abra o painel no PC da API ou use ?chave=)';
+                    throw new Error(msg);
+                }
+                return data;
+            } finally {
+                clearTimeout(timer);
+            }
+        }
+
+        // ==========================================
+        // 🕒 CONTROLE DE DATA E HORA
+        // ==========================================
+        const elementoRelogio = $('current-time');
+        const formatoRelogio = new Intl.DateTimeFormat('pt-BR', {
+            day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit'
+        });
+        function atualizarRelogio() {
+            elementoRelogio.textContent = formatoRelogio.format(new Date()).replace(',', ' -');
+        }
+        setInterval(atualizarRelogio, 1000);
+        atualizarRelogio();
+
+        // ==========================================
+        // 📡 WEBSOCKET COM RECONEXÃO (backoff 1 s, 2 s, 4 s ... até 30 s)
+        // ==========================================
+        let ws = null;
+        let tentativasWs = 0;
+        let timerReconexao = null;
+        const wsStatusText = $('ws-status-text');
+        const wsStatusBadge = $('websocket-status');
+
+        function mostrarStatusWs(online, texto) {
+            wsStatusText.textContent = texto;
+            wsStatusBadge.classList.toggle('ws-connected', online);
+            wsStatusBadge.classList.toggle('ws-disconnected', !online);
+        }
+
+        function conectarWebSocket() {
+            clearTimeout(timerReconexao);
+            let socket;
+            try {
+                socket = new WebSocket(WS_URL);
+            } catch (e) {
+                agendarReconexao();
+                return;
+            }
+            ws = socket;
+
+            socket.onopen = () => {
+                tentativasWs = 0;
+                mostrarStatusWs(true, 'Servidor Online');
+                agendarAtualizacao(0);   // pega o que aconteceu enquanto estava offline
+                verificarServidor();
+            };
+
+            socket.onclose = () => {
+                if (ws !== socket) return;   // conexão antiga, já substituída
+                ws = null;
+                agendarReconexao();
+            };
+
+            socket.onerror = () => socket.close();
+
+            socket.onmessage = (event) => {
+                let dados;
+                try { dados = JSON.parse(event.data); } catch (e) { return; }
+                processarMensagemTempoReal(dados);
+            };
+        }
+
+        function agendarReconexao() {
+            const espera = Math.min(30000, 1000 * 2 ** tentativasWs);
+            tentativasWs++;
+            mostrarStatusWs(false, `Servidor Offline - reconectando em ${Math.round(espera / 1000)} s`);
+            timerReconexao = setTimeout(conectarWebSocket, espera);
+        }
+
+        // Volta a conectar na hora quando a aba volta a ficar visível ou a rede volta
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden && !ws) conectarWebSocket();
+        });
+        window.addEventListener('online', () => { if (!ws) conectarWebSocket(); });
+
+        // ==========================================
+        // 🔄 DADOS DO PAINEL (REST)
+        // Vários eventos seguidos viram UMA requisição; e só redesenha a parte que mudou.
+        // ==========================================
+        let timerAtualizacao = null;
+        let buscando = false;
+        let buscarDeNovo = false;
+        let mostrarUltimoAcesso = false;
+        const ultimoJson = { historico: '', alertas: '', vagas: '' };
+
+        function agendarAtualizacao(atraso = 250) {
+            clearTimeout(timerAtualizacao);
+            timerAtualizacao = setTimeout(carregarDados, atraso);
+        }
+
+        async function carregarDados() {
+            if (buscando) { buscarDeNovo = true; return; }
+            buscando = true;
+            try {
+                const dados = await chamarApi('/api/portaria/iniciar-dados');
+                for (const secao of ['historico', 'alertas', 'vagas']) {
+                    const lista = Array.isArray(dados[secao]) ? dados[secao] : [];
+                    const json = JSON.stringify(lista);
+                    if (json === ultimoJson[secao]) continue;   // nada mudou nessa seção
+                    ultimoJson[secao] = json;
+                    if (secao === 'historico') renderizarHistorico(lista);
+                    if (secao === 'alertas') renderizarAlertas(lista);
+                    if (secao === 'vagas') renderizarVagas(lista);
+                }
+                if (mostrarUltimoAcesso && dados.historico && dados.historico.length) {
+                    mostrarUltimoAcesso = false;
+                    renderizarResultado(dados.historico[0]);
+                }
+            } catch (error) {
+                console.error('Erro ao buscar dados do painel:', error);
+            } finally {
+                buscando = false;
+                if (buscarDeNovo) { buscarDeNovo = false; agendarAtualizacao(); }
+            }
+        }
+
+        async function verificarServidor() {
+            const info = $('server-info');
+            try {
+                const s = await chamarApi('/', {}, 5000);
+                const partes = [
+                    s.mqtt_conectado ? '🟢 MQTT conectado' : '🔴 MQTT offline (cancelas não recebem comando)',
+                    s.reconhecimento_facial ? '🟢 Facial ok' : '🔴 Facial indisponível',
+                    s.leitor_placas_carregado ? '🟢 Leitor de placas pronto' : '🟡 Leitor de placas carregando',
+                ];
+                info.textContent = partes.join(' · ');
+            } catch (e) {
+                info.textContent = '🔴 API fora do ar';
+            }
+        }
+
+        // ==========================================
+        // 🛠️ RENDERIZAÇÃO (monta o HTML uma vez e troca de uma vez só)
+        // ==========================================
+        function renderizarHistorico(historicoList) {
+            const container = $('access-history');
+            if (historicoList.length === 0) {
+                container.innerHTML = `<div class="empty-state"><i class="ri-history-line"></i><p>Nenhum acesso registrado</p></div>`;
+                return;
+            }
+            container.innerHTML = historicoList.map(log => {
+                const ok = log.sucesso !== false && !String(log.tipo).includes('NEGADO');
+                const quem = log.morador ? `${esc(log.morador)} · ` : '';
+                return `
+                <div class="history-item ${ok ? 'history-approved' : 'history-denied'}">
+                    <div class="history-header">
+                        <span>${esc(rotuloTipo(log.tipo))}</span>
+                        <span class="history-time">${esc(log.data_hora)}</span>
+                    </div>
+                    <span class="spot-plate">Placa: <b>${esc(log.placa)}</b></span>
+                    ${log.morador || log.motivo ? `<div class="history-meta">${quem}${esc(log.motivo || '')}</div>` : ''}
+                </div>`;
+            }).join('');
+        }
+
+        function renderizarAlertas(alertasList) {
+            const container = $('alerts-list');
+            const badge = $('alerts-badge');
+            const btnLimpar = $('clear-alerts-btn');
+
+            if (alertasList.length === 0) {
+                container.innerHTML = `<div class="empty-state"><i class="ri-notification-3-line"></i><p>Nenhum alerta ativo</p></div>`;
+                badge.style.display = 'none';
+                btnLimpar.style.display = 'none';
+                return;
+            }
+
+            badge.style.display = 'inline-block';
+            badge.textContent = alertasList.length;
+            btnLimpar.style.display = 'inline-block';
+
+            // Graves primeiro; dentro do grupo, o backend já manda do mais novo para o mais antigo
+            const ordenados = [...alertasList].sort((a, b) => alertaGrave(b.tipo) - alertaGrave(a.tipo));
+            container.innerHTML = ordenados.map(alerta => {
+                const grave = alertaGrave(alerta.tipo);
+                return `
+                <div class="alert-item ${grave ? 'alerta-grave' : ''}">
+                    <div class="alert-title">
+                        <span><i class="${grave ? 'ri-shield-keyhole-line' : 'ri-car-line'}"></i> ${esc(rotuloAlerta(alerta.tipo))}</span>
+                        <button class="resolver-btn" data-alerta="${Number(alerta.id)}">Resolver</button>
+                    </div>
+                    <p class="alert-desc">${esc(alerta.descricao)}</p>
+                    <small class="alert-time">${esc(alerta.data_hora)}</small>
+                </div>`;
+            }).join('');
+        }
+
+        function renderizarVagas(vagasList) {
+            const container = $('parking-spots');
+            let ocupadas = 0, conflitos = 0;
+
+            container.innerHTML = vagasList.map(vaga => {
+                let corStatus = '#10b981', textoStatus = 'LIVRE';
+                if (vaga.conflito) {
+                    corStatus = '#ef4444'; textoStatus = 'CONFLITO!'; conflitos++;
+                } else if (vaga.ocupada) {
+                    corStatus = '#f59e0b'; textoStatus = 'OCUPADA'; ocupadas++;
+                }
+                const infoVeiculo = (vaga.ocupada || vaga.conflito)
+                    ? `<span class="spot-plate">${esc(vaga.placa_atual || 'Lendo...')}</span>` : '';
+                return `
+                <div class="spot-item" style="border-left-color: ${corStatus};">
+                    <div class="spot-header">
+                        <span>Vaga ${esc(vaga.numero)}</span>
+                        <span style="color: ${corStatus}; font-size: 11px;">${textoStatus}</span>
+                    </div>
+                    <div class="spot-owner">${esc(vaga.dono_nome)} (Apt: ${esc(vaga.dono_apt)})</div>
+                    ${infoVeiculo}
+                </div>`;
+            }).join('');
+
+            $('parking-summary').innerHTML = vagasList.length === 0
+                ? 'Nenhuma vaga cadastrada.'
+                : `Total: <b>${vagasList.length}</b> | Ocupadas: <b>${ocupadas}</b> | Conflitos: <b style="color:#ef4444">${conflitos}</b>`;
+        }
+
+        // Resultado do último acesso, no painel de verificação
+        function renderizarResultado(log) {
+            const ok = log.sucesso !== false && !String(log.tipo).includes('NEGADO');
+            $('status-panel').innerHTML = `
+                <div class="status-panel ${ok ? 'status-approved' : 'status-denied'}">
+                    <div class="status-title">${ok ? '✅ Acesso liberado' : '⛔ Acesso negado'} · ${esc(rotuloTipo(log.tipo))}</div>
+                    <div class="status-message">
+                        Placa <b>${esc(log.placa)}</b>${log.morador ? ` · ${esc(log.morador)}` : ''}<br>
+                        ${esc(log.motivo || '')}
+                    </div>
+                </div>`;
+            agendarLimpezaVerificacao();
+        }
+
+        // ==========================================
+        // 📷 FOTOS DA VERIFICAÇÃO
+        // ==========================================
+        const VAZIO = {
+            PLACA: '<i class="ri-car-line"></i><p class="empty-text">Aguardando veículo...</p>',
+            ROSTO: '<i class="ri-user-3-line"></i><p class="empty-text">Aguardando pessoa...</p>',
+        };
+        const caixas = { PLACA: $('plate-display'), ROSTO: $('face-display') };
+        let timerLimpeza = null;
+
+        function limparVerificacao() {
+            for (const [camera, box] of Object.entries(caixas)) {
+                box.classList.remove('com-imagem');
+                box.innerHTML = VAZIO[camera];
+            }
+            $('status-panel').innerHTML = '';
+        }
+
+        function agendarLimpezaVerificacao() {
+            clearTimeout(timerLimpeza);
+            timerLimpeza = setTimeout(limparVerificacao, TEMPO_LIMPAR_VERIFICACAO);
+        }
+
+        function mostrarImagem(camera, base64) {
+            const box = caixas[camera];
+            if (!box || typeof base64 !== 'string' || !/^[A-Za-z0-9+/=]+$/.test(base64)) return;
+            let img = box.querySelector('img');
+            if (!img) {
+                box.innerHTML = '';
+                img = document.createElement('img');
+                img.alt = camera === 'PLACA' ? 'Foto da placa' : 'Foto do rosto';
+                box.appendChild(img);
+                box.classList.add('com-imagem');
+            }
+            img.src = 'data:image/jpeg;base64,' + base64;
+            $('status-panel').innerHTML = '';   // nova passagem: some o resultado anterior
+            agendarLimpezaVerificacao();
+        }
+
+        // ==========================================
+        // 🚀 EVENTOS EM TEMPO REAL
+        // ==========================================
+        function processarMensagemTempoReal(dados) {
+            switch (dados.evento) {
+                case 'NOVO_ACESSO':
+                    mostrarUltimoAcesso = true;
+                    agendarAtualizacao();
+                    break;
+                case 'ATUALIZACAO_VAGAS':
+                    agendarAtualizacao();
+                    break;
+                case 'NOVO_ALERTA':
+                    agendarAtualizacao();
+                    tocarSomAlerta();
+                    break;
+                case 'IMAGEM_CAPTURADA':
+                    mostrarImagem(dados.camera, dados.base64);
+                    break;
+            }
+        }
+
+        // Bipe curto sem arquivo de áudio (o navegador só toca depois do 1º clique na página)
+        let audioCtx = null;
+        document.addEventListener('click', () => {
+            if (!audioCtx && window.AudioContext) audioCtx = new AudioContext();
+        }, { once: true });
+
+        function tocarSomAlerta() {
+            if (!audioCtx) return;
+            try {
+                const osc = audioCtx.createOscillator();
+                const ganho = audioCtx.createGain();
+                osc.frequency.value = 880;
+                ganho.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                ganho.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.6);
+                osc.connect(ganho).connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.6);
+            } catch (e) { /* sem áudio */ }
+        }
+
+        // ==========================================
+        // 🖱️ AÇÕES DO PORTEIRO
+        // ==========================================
+        $('alerts-list').addEventListener('click', async (e) => {
+            const btn = e.target.closest('[data-alerta]');
+            if (!btn) return;
+            btn.disabled = true;
+            try {
+                await chamarApi(`/api/alertas/${btn.dataset.alerta}/resolver`, { method: 'POST' });
+                agendarAtualizacao(0);
+            } catch (err) {
+                alert('Não foi possível resolver o alerta: ' + err.message);
+                btn.disabled = false;
+            }
+        });
+
+        $('clear-alerts-btn').addEventListener('click', async (e) => {
+            const ids = JSON.parse(ultimoJson.alertas || '[]').map(a => a.id);
+            if (!ids.length || !confirm(`Marcar ${ids.length} alerta(s) como resolvido(s)?`)) return;
+            e.target.disabled = true;
+            const resultados = await Promise.allSettled(
+                ids.map(id => chamarApi(`/api/alertas/${id}/resolver`, { method: 'POST' })));
+            const falhas = resultados.filter(r => r.status === 'rejected');
+            if (falhas.length) alert(`${falhas.length} alerta(s) não resolvido(s): ${falhas[0].reason.message}`);
+            e.target.disabled = false;
+            agendarAtualizacao(0);
+        });
+
+        document.querySelectorAll('[data-acao]').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const { acao, lado } = btn.dataset;
+                const nomeLado = lado === 'entrada' ? 'entrada' : 'saída';
+                let caminho, opcoes = { method: 'POST' };
+                if (acao === 'abrir') {
+                    const motivo = prompt(`Motivo para abrir a cancela de ${nomeLado}:`, 'Liberação manual pelo porteiro');
+                    if (motivo === null) return;
+                    caminho = `/api/portaria/cancela/${lado}/abrir`;
+                    opcoes.headers = { 'Content-Type': 'application/json' };
+                    opcoes.body = JSON.stringify({ motivo: motivo.trim() || 'Liberação manual pelo porteiro' });
+                } else {
+                    caminho = `/api/portaria/simular/${lado}`;
+                }
+                btn.disabled = true;
+                try {
+                    const r = await chamarApi(caminho, opcoes);
+                    if (r.aviso) alert(r.aviso);
+                    else if (r.status && r.status !== 'ok') alert(r.status);
+                } catch (err) {
+                    alert('Falhou: ' + err.message);
+                } finally {
+                    btn.disabled = false;
+                }
+            });
+        });
+
+        limparVerificacao();
+        agendarAtualizacao(0);
+        conectarWebSocket();
+        setInterval(verificarServidor, 30000);
+    </script>
+</body>
+
+</html>

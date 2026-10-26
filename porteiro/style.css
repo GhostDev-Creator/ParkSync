@@ -1,0 +1,291 @@
+:root {
+    --bg-main: #0f172a;
+    --bg-card: #1e293b;
+    --border-color: rgba(255, 255, 255, 0.08);
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    
+    --color-success: #10b981;
+    --color-error: #ef4444;
+    --color-warning: #f59e0b;
+    --color-primary: #3b82f6;
+    --color-indigo: #6366f1;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--bg-main);
+    color: var(--text-primary);
+    min-height: 100 viewport;
+}
+
+/* Header */
+.header {
+    background-color: var(--bg-card);
+    border-bottom: 1px solid var(--border-color);
+    padding: 1rem 2rem;
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.header-left, .header-right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.logo {
+    background-color: rgba(59, 130, 246, 0.2);
+    color: var(--color-primary);
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+    font-size: 1.5rem;
+}
+
+h1 { font-size: 1.25rem; }
+.subtitle { color: var(--text-secondary); font-size: 0.85rem; }
+
+/* WebSocket Badges */
+.ws-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0.4rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: bold;
+}
+.ws-connected { background: rgba(16, 185, 129, 0.15); color: var(--color-success); }
+.ws-disconnected { background: rgba(239, 68, 68, 0.15); color: var(--color-error); }
+
+.clock, .user-badge {
+    background-color: rgba(255, 255, 255, 0.03);
+    padding: 0.5rem 1rem;
+    border-radius: 0.375rem;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Layout */
+.container {
+    max-width: 1400px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+}
+
+.main-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 1.5rem;
+}
+
+@media(max-width: 968px) {
+    .main-grid { grid-template-columns: 1fr; }
+}
+
+.left-column, .right-column {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+/* Cards */
+.card {
+    background-color: var(--bg-card);
+    border-radius: 0.75rem;
+    border: 1px solid var(--border-color);
+    overflow: hidden;
+}
+
+.card-header {
+    padding: 1rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.card-header h2 { font-size: 1.1rem; flex: 1; }
+
+.header-blue { border-left: 4px solid var(--color-primary); }
+.header-gray { border-left: 4px solid var(--text-secondary); }
+.header-orange { border-left: 4px solid var(--color-warning); }
+.header-indigo { border-left: 4px solid var(--color-indigo); }
+
+.card-body { padding: 1.5rem; }
+
+/* Grid de Verificação */
+.verification-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.verification-box {
+    background: rgba(0,0,0,0.15);
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+
+.box-header {
+    background: rgba(255,255,255,0.02);
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.box-content {
+    padding: 2rem;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 140px;
+}
+
+.empty-text { color: var(--text-secondary); font-size: 0.9rem; margin-top: 0.5rem;}
+.license-plate {
+    background: white;
+    color: black;
+    font-weight: bold;
+    font-family: monospace;
+    font-size: 2rem;
+    padding: 0.25rem 1.5rem;
+    border-radius: 4px;
+    border: 3px solid black;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+    margin-bottom: 10px;
+}
+
+/* Badges de Status */
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 10px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+.status-success { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+.status-error { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+.status-warning { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+
+/* Painéis de Decisões Especiais */
+.status-panel, .owner-panel, .parking-panel {
+    border-radius: 0.5rem;
+    padding: 1.25rem;
+    margin-top: 1rem;
+    border: 1px solid transparent;
+}
+
+.status-approved { background: rgba(16, 185, 129, 0.1); border-color: var(--color-success); }
+.status-denied { background: rgba(239, 68, 68, 0.1); border-color: var(--color-error); }
+.status-pending { background: rgba(245, 158, 11, 0.1); border-color: var(--color-warning); }
+
+.status-title { font-weight: bold; font-size: 1.1rem; margin-bottom: 0.25rem; }
+.status-message { font-size: 0.95rem; opacity: 0.9; }
+
+.status-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.status-btn {
+    flex: 1;
+    padding: 0.6rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+}
+.btn-approve { background: var(--color-success); color: white; }
+.btn-deny { background: var(--color-error); color: white; }
+
+/* Dono / Vaga */
+.owner-panel { background: rgba(59, 130, 246, 0.05); border-color: rgba(59, 130, 246, 0.3); border: 1px solid rgba(59,130,246,0.3); }
+.owner-title { font-size: 1rem; margin-bottom: 10px;}
+.owner-info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 0.9rem;}
+.info-label { color: var(--text-secondary); font-size: 0.75rem; }
+.info-value { font-weight: bold; }
+.owner-warning { background: rgba(245,158,11,0.15); padding: 8px; border-radius: 4px; color: var(--color-warning); font-size: 0.8rem; margin: 15px 0; text-align: center;}
+
+.quick-actions-label { font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 5px; }
+.actions-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.action-btn {
+    padding: 0.5rem;
+    border: none;
+    border-radius: 4px;
+    color: white;
+    font-size: 0.8rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+}
+.btn-green { background: #059669; }
+.btn-blue { background: #2563eb; }
+.btn-orange { background: #d97706; }
+.btn-purple { background: #7c3aed; }
+.btn-red { background: #dc2626; }
+
+/* Estacionamento comparador irregular */
+.parking-panel { background: rgba(239, 68, 68, 0.05); border: 1px solid rgba(239,68,68,0.3); }
+.parking-title { color: #f87171; font-size: 1rem; margin-bottom: 10px; display: flex; align-items: center; gap: 5px;}
+.comparison-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.comparison-section h4 { font-size: 0.75rem; margin-bottom: 5px; color: var(--text-secondary); }
+.comparison-box { padding: 10px; border-radius: 6px; font-size: 0.85rem;}
+.box-green { background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16,185,129,0.2); }
+.box-red { background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239,68,68,0.2); }
+
+/* Vagas Coluna Direita */
+.parking-summary { font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 10px; }
+#parking-spots { display: flex; flex-direction: column; gap: 8px; max-height: 380px; overflow-y: auto;}
+.spot-item { padding: 10px; border-radius: 6px; background: rgba(0,0,0,0.2); border-left: 4px solid transparent; font-size: 0.85rem;}
+.spot-occupied { border-left-color: var(--color-error); }
+.spot-free { border-left-color: var(--color-success); }
+.spot-header { display: flex; justify-content: space-between; margin-bottom: 4px; font-weight: bold;}
+.spot-owner { color: var(--text-secondary); font-size: 0.8rem; }
+.spot-plate { font-family: monospace; background: rgba(255,255,255,0.05); display: inline-block; padding: 2px 6px; border-radius: 4px; margin-top: 5px;}
+
+/* Alertas */
+#alerts-list { display: flex; flex-direction: column; gap: 8px; }
+.alert-item { background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245,158,11,0.2); padding: 10px; border-radius: 6px; font-size: 0.85rem; color: #fcd34d;}
+.badge { background: var(--color-error); padding: 2px 6px; border-radius: 10px; font-size: 0.75rem; font-weight: bold;}
+.clear-btn { background: none; border: none; color: var(--text-secondary); cursor: pointer; font-size: 0.8rem;}
+.clear-btn:hover { color: white; }
+
+/* Histórico */
+#access-history { display: flex; flex-direction: column; gap: 10px; max-height: 400px; overflow-y: auto;}
+.history-item { background: rgba(0,0,0,0.15); padding: 12px; border-radius: 6px; border-left: 3px solid transparent; font-size: 0.85rem;}
+.history-approved { border-left-color: var(--color-success); }
+.history-denied { border-left-color: var(--color-error); }
+.history-pending { border-left-color: var(--color-warning); }
+.history-header { display: flex; justify-content: space-between; margin-bottom: 5px; font-weight: bold;}
+.history-time { color: var(--text-secondary); font-size: 0.8rem; }
+
+.empty-state { text-align: center; padding: 2rem; color: var(--text-secondary); font-size: 0.9rem;}
