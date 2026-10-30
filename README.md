@@ -275,7 +275,6 @@ allow_anonymous true
 
 Abra cada pasta de firmware no Arduino IDE (core ESP32 2.x ou 3.x, bibliotecas PubSubClient e ESP32Servo), ajuste Wi-Fi e IP do broker no `config.h` e grave em cada placa. A versão do firmware aparece no Serial Monitor ao ligar e em `/status`: confira antes de analisar um log.
 
-> [!TIP]
 > As ESP32-CAM enviam fotos pelo Wi-Fi, então sinal fraco vira lentidão na cancela. Na maquete, prefira um roteador ou celular dedicado perto das placas.
 
 </details>
